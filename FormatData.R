@@ -28,7 +28,7 @@ write.csv(VarMatrix, file ="VaranceMatrix.csv", row.names = TRUE)
 bloodData = c("ExprM.GSE102459.2020_10_16.gz", "ExprM.GSE128224.2020_10_22.gz", "ExprM.GSE127792.2020_10_22.gz", "ExprM.GSE97590.2020_10_22.gz", "ExprM.GSE86627.2020_10_16.gz", "ExprM.GSE86331.2020_10_16.gz", "ExprM.GSE83951.2020_10_16.gz")
 PBMCData = c("ExprM.GSE82152.2020_10_16.gz", "ExprM.GSE120115.2020_10_22.gz", "ExprM.GSE107990.2020_10_16.gz", "ExprM.GSE87186.2020_10_22.gz", "ExprM.GSE59743.2020_10_16.gz", "ExprM.GSE74816.2020_10_16.gz")
 
-remove_2 = c()
+remove= c()
 for (i in 1:ncol(VarMatrix)){
   if(sum(is.na(VarMatrix[,i])) >=4){
     na_blood = 0
@@ -43,16 +43,16 @@ for (i in 1:ncol(VarMatrix)){
       }
     }
     if( na_blood >=4 || na_PBMC >= 4){
-      #remove = append(remove, colnames(VarMatrix)[i])
-      remove_2 = append(remove_2, i)
+      remove = append(remove, i)
     }
   }else{
     next
   }
 }
 
-#Remove genes from the matrix
-modif_VarMatrix <- VarMatrix[,-remove_2]
+#Remove genes from the matrix and genes.all
+modif_VarMatrix <- VarMatrix[,-remove]
+genes.filtered = genes.all[-remove]
 
 #Calculate median for each column
 VarMedian = c()
@@ -62,20 +62,39 @@ for(k in 1:ncol(modif_VarMatrix)){
 #View result in histogram 
 hist(VarMedian, ylim=c(0,70), xlim=c(0,0.006), breaks = length(VarMedian), xlab = "Median with NA removed")
 
+# Remove genes that are at the bottom 25 percentile 
+percentile = quantile(VarMedian)
+
+remove_2 = c()
+for(l in 1:length(VarMedian)){
+  if(VarMedian[l]<q[2]){
+    remove_2 = append(remove_2, l)
+  } else {
+    next
+  }
+}
+genes.filtered = genes.filtered[-remove_2]
+
+## Blood dataset
+# Create expression matrix for each dataset
+...
+# Make a correlation matrixfrom the expression matrix
 
 
-genes.filtered = genes.all[highvariance]
+
 
 ## Nu kan vi börja beräkna korrelationer på alla dataset och sammanställa resultaten.
 
+setwd("~/Documents/X/Slutkurs/github/ITA/Data")
 cor.L = list()
-for(i in 1:length(datasets.blood)){
-	L1 = readLines(gzfile("ExprM.GSE107990.2020_10_16.gz")); closeAllConnections()
+for(i in 1:length(bloodData)){
+	L1 = readLines(gzfile(bloodData[i])); closeAllConnections()
 	L2 = strsplit(L1, split=",")
 	Mx = sapply(FUN=function(v){return(as.numeric(v[-1]))},X=L2[2:length(L2)])
 	rownames(Mx) = L2[[1]][-1]
 	colnames(Mx) = sapply(FUN=getElement, X=L2[2:length(L2)], 1)
 	for(i in 1:nrow(Mx)){Mx[i,] = Mx[i,]/max(Mx[i,],na.rm=T)}
+	
 	cor.L[[i]] = cor(Mx,use="pair")
 }
 

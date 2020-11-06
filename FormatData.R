@@ -1,13 +1,13 @@
-fn.x = "~/github/ITA/hsapiens.AllCodingHumanGenes.txt"
+fn.x = "~/Documents/X/Slutkurs/github/ITA/hsapiens.AllCodingHumanGenes.txt"
 genes.all = sort(readLines(fn.x))
 
-files = list.files(path = "~/github/ITA/Data/")
+files = list.files(path = "~/Documents/X/Slutkurs/github/ITA/Data/")
 
 VarMatrix = matrix(nrow=length(files), ncol=length(genes.all))
 colnames(VarMatrix) = genes.all 
 rownames(VarMatrix) = files
 
-setwd("~/github/ITA/Data")
+setwd("~/Documents/X/Slutkurs/github/ITA/Data")
 for (i in 1:length(files)) {
   L1 = readLines(gzfile(files[i])); closeAllConnections()
   L2 = strsplit(L1, split=",")
@@ -67,7 +67,7 @@ percentile = quantile(VarMedian)
 
 remove_2 = c()
 for(l in 1:length(VarMedian)){
-  if(VarMedian[l]<q[2]){
+  if(VarMedian[l]<percentile[2]){
     remove_2 = append(remove_2, l)
   } else {
     next
@@ -75,10 +75,9 @@ for(l in 1:length(VarMedian)){
 }
 genes.filtered = genes.filtered[-remove_2]
 
-## Blood dataset
-# Create expression matrix for each dataset
-...
-# Make a correlation matrixfrom the expression matrix
+setwd("~/Documents/X/Slutkurs/github/ITA/")
+write.table(genes.filtered, file = "genes.filtered.txt", sep="\t", row.names = FALSE, col.names = FALSE, quote = FALSE)
+
 
 
 

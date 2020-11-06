@@ -1,13 +1,13 @@
-fn.x = "/Users/aina/Documents/X/Slutkurs/ITA/hsapiens.AllCodingHumanGenes.txt"
+fn.x = "~/github/ITA/hsapiens.AllCodingHumanGenes.txt"
 genes.all = sort(readLines(fn.x))
 
-files = list.files(path = "/Users/aina/Documents/X/Slutkurs/ITA/Data/")
+files = list.files(path = "~/github/ITA/Data/")
 
 VarMatrix = matrix(nrow=length(files), ncol=length(genes.all))
 colnames(VarMatrix) = genes.all 
 rownames(VarMatrix) = files
 
-setwd("/Users/aina/Documents/X/Slutkurs/ITA/Data/")
+setwd("~/github/ITA/Data")
 for (i in 1:length(files)) {
   L1 = readLines(gzfile(files[i])); closeAllConnections()
   L2 = strsplit(L1, split=",")
@@ -60,7 +60,7 @@ for(k in 1:ncol(modif_VarMatrix)){
   VarMedian = append(VarMedian, median(modif_VarMatrix[,k], na.rm=TRUE))
 }
 #View result in histogram 
-hist(VarMedian, breaks = length(VarMedian), xlab = "Median with NA removed")
+hist(VarMedian, ylim=c(0,70), xlim=c(0,0.006), breaks = length(VarMedian), xlab = "Median with NA removed")
 
 
 

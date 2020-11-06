@@ -1,13 +1,24 @@
-fn.x = "~/Documents/X/Slutkurs/github/ITA/hsapiens.AllCodingHumanGenes.txt"
+## FormatData
+
+# Set path ----------------------------------------------------------------
+
+myPath = "~/github/ITA/"
+myDataPath = "~/github/ITA/Data/"
+
+# Load data ---------------------------------------------------------------
+setwd(myPath)
+fn.x = "hsapiens.AllCodingHumanGenes.txt"
 genes.all = sort(readLines(fn.x))
 
-files = list.files(path = "~/Documents/X/Slutkurs/github/ITA/Data/")
+files = list.files(path = myDataPath)
+
+# Create varance matrix ---------------------------------------------------
 
 VarMatrix = matrix(nrow=length(files), ncol=length(genes.all))
 colnames(VarMatrix) = genes.all 
 rownames(VarMatrix) = files
 
-setwd("~/Documents/X/Slutkurs/github/ITA/Data")
+setwd(myDataPath)
 for (i in 1:length(files)) {
   L1 = readLines(gzfile(files[i])); closeAllConnections()
   L2 = strsplit(L1, split=",")
@@ -20,11 +31,16 @@ for (i in 1:length(files)) {
   names(var.x) = colnames(Mx)
   VarMatrix[i,] = var.x[genes.all]
 }
-#Save variance matix to file
-setwd("~/github/ITA/")
+
+# Save variance matix to file ---------------------------------------------
+
+setwd(myPath)
 write.csv(VarMatrix, file ="VaranceMatrix.csv", row.names = TRUE)
 
-# Find genes which needs to be removed from the matrix
+
+# Remove genes that are missing in too many datasets ----------------------
+  # Each gene needs to exist in at least 4 datasets for each tissuetype 
+
 bloodData = c("ExprM.GSE102459.2020_10_16.gz", "ExprM.GSE128224.2020_10_22.gz", "ExprM.GSE127792.2020_10_22.gz", "ExprM.GSE97590.2020_10_22.gz", "ExprM.GSE86627.2020_10_16.gz", "ExprM.GSE86331.2020_10_16.gz", "ExprM.GSE83951.2020_10_16.gz")
 PBMCData = c("ExprM.GSE82152.2020_10_16.gz", "ExprM.GSE120115.2020_10_22.gz", "ExprM.GSE107990.2020_10_16.gz", "ExprM.GSE87186.2020_10_22.gz", "ExprM.GSE59743.2020_10_16.gz", "ExprM.GSE74816.2020_10_16.gz")
 
@@ -54,15 +70,21 @@ for (i in 1:ncol(VarMatrix)){
 modif_VarMatrix <- VarMatrix[,-remove]
 genes.filtered = genes.all[-remove]
 
-#Calculate median for each column
+
+# Calculate median for each column(gene) ----------------------------------
+
 VarMedian = c()
 for(k in 1:ncol(modif_VarMatrix)){
   VarMedian = append(VarMedian, median(modif_VarMatrix[,k], na.rm=TRUE))
 }
-#View result in histogram 
+
+# View median distribution in histogram  ----------------------------------
+
 hist(VarMedian, ylim=c(0,70), xlim=c(0,0.006), breaks = length(VarMedian), xlab = "Median with NA removed")
 
-# Remove genes that are at the bottom 25 percentile 
+
+# Remove genes that are at the bottom 25 percentile  ----------------------
+
 percentile = quantile(VarMedian)
 
 remove_2 = c()
@@ -75,31 +97,8 @@ for(l in 1:length(VarMedian)){
 }
 genes.filtered = genes.filtered[-remove_2]
 
-setwd("~/Documents/X/Slutkurs/github/ITA/")
+
+# Save filtered genes to file ---------------------------------------------
+
+setwd(myPath)
 write.table(genes.filtered, file = "genes.filtered.txt", sep="\t", row.names = FALSE, col.names = FALSE, quote = FALSE)
-
-
-
-
-
-## Nu kan vi börja beräkna korrelationer på alla dataset och sammanställa resultaten.
-
-setwd("~/Documents/X/Slutkurs/github/ITA/Data")
-cor.L = list()
-for(i in 1:length(bloodData)){
-	L1 = readLines(gzfile(bloodData[i])); closeAllConnections()
-	L2 = strsplit(L1, split=",")
-	Mx = sapply(FUN=function(v){return(as.numeric(v[-1]))},X=L2[2:length(L2)])
-	rownames(Mx) = L2[[1]][-1]
-	colnames(Mx) = sapply(FUN=getElement, X=L2[2:length(L2)], 1)
-	for(i in 1:nrow(Mx)){Mx[i,] = Mx[i,]/max(Mx[i,],na.rm=T)}
-	
-	cor.L[[i]] = cor(Mx,use="pair")
-}
-
-## Sammanställ alla korrelationsvärden för en gen:
-
-for(i in 1:length(genes.all)){
-
-	
-}

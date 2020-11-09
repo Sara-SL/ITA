@@ -16,7 +16,7 @@ PBMCData = c("ExprM.GSE82152.2020_10_16.gz", "ExprM.GSE120115.2020_10_22.gz", "E
 # Create expression & correlation matrix for each dataset -------------------------------
 
 #Select tissue: bloodData or PBMCData
-tissue = bloodData
+tissue = PBMCData
 
 setwd(myDataPath)
 corrL = list()
@@ -36,7 +36,7 @@ for(i in 1:length(tissue)){
       remove_3 = append(remove_3, j)
     }
   }
-  
+  #Only keep the filtered genes
   Mx <- Mx[, -remove_3]
   
   # Make a correlation matrix from the expression matrix
@@ -46,13 +46,36 @@ for(i in 1:length(tissue)){
 
 # Statistics --------------------------------------------------------------
 
-CorrTable.GeneX = matrix(nrow=X1, ncol=X2)
-colnames(CorrTable.GeneX) = genes.filtered
+# Initiate 
+corrMx = matrix(nrow = 0, ncol=length(genes.filtered))
+colnames(corrMx) = genes.filtered
 
+# Create correlation table for each gene and calculate statistics
 for(ii in 1:length(genes.filtered)){
-  for(jj in 1:length(CorrL_PBMC)){
-    if(genes.filtered[ii]%in%colnames(CorrL_PBMC[[jj]])){
-      Corr.Table.GeneX[jj,] = CorrL_PBMC[[jj]][,genes.filtered[ii]]
+  CorrTable.GeneX = matrix(nrow=length(tissue), ncol=length(genes.filtered))
+  colnames(CorrTable.GeneX) = genes.filtered
+  
+  for(jj in 1:length(corrL)){ 				    	  # length(corrL) = 6
+    if(genes.filtered[ii] %in% colnames(corrL[[jj]])){
+      for(k in 1:ncol(corrL[[jj]]) ){
+        for(l in 1:length(genes.filtered)){
+          if(colnames( corrL[[jj]] )[k] == colnames(CorrTable.GeneX)[l]){
+            CorrTable.GeneX[jj,l] = corrL[[jj]] [k, which(rownames(corrL[[jj]]) == genes.filtered[ii])]
+          }
+        }
+      }
     }
   }
+  
+  #Calculate statistics for the gene 
+  mean.x = colMeans(CorrTable.GeneX, na.rm=T)
+  n.x = colSums(!is.na(CorrTable.GeneX),na.rm=T)
+  sd.x = apply(FUN=sd, X=CorrTable.GeneX, MARGIN=2, na.rm=T)
+  t.vector = mean.x*sqrt(n.x)/sd.x
+  
+  #Save t-values in matrix
+  corrMx <- rbind(corrMx, t.vector)
+  
 }
+rownames(corrMx) = genes.filtered
+

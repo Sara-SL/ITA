@@ -82,7 +82,6 @@ for(k in 1:ncol(modif_VarMatrix)){
 
 hist(VarMedian, ylim=c(0,70), xlim=c(0,0.006), breaks = length(VarMedian), xlab = "Median with NA removed")
 
-
 # Remove genes that are at the bottom 25 percentile  ----------------------
 
 percentile = quantile(VarMedian)

@@ -44,9 +44,10 @@ write.csv(VarMatrix, file ="VaranceMatrix.csv", row.names = TRUE)
 bloodData = c("ExprM.GSE102459.2020_10_16.gz", "ExprM.GSE128224.2020_10_22.gz", "ExprM.GSE127792.2020_10_22.gz", "ExprM.GSE97590.2020_10_22.gz", "ExprM.GSE86627.2020_10_16.gz", "ExprM.GSE86331.2020_10_16.gz", "ExprM.GSE83951.2020_10_16.gz")
 PBMCData = c("ExprM.GSE82152.2020_10_16.gz", "ExprM.GSE120115.2020_10_22.gz", "ExprM.GSE107990.2020_10_16.gz", "ExprM.GSE87186.2020_10_22.gz", "ExprM.GSE59743.2020_10_16.gz", "ExprM.GSE74816.2020_10_16.gz")
 
+# For blood vs PBMC analysis
 remove= c()
 for (i in 1:ncol(VarMatrix)){
-  if(sum(is.na(VarMatrix[,i])) >=4){
+  if(sum(is.na(VarMatrix[,i])) >2){
     na_blood = 0
     na_PBMC = 0
     for(j in 1:nrow(VarMatrix)){
@@ -58,7 +59,7 @@ for (i in 1:ncol(VarMatrix)){
         next
       }
     }
-    if( na_blood >=4 || na_PBMC >= 4){
+    if( na_blood >3 || na_PBMC >2){
       remove = append(remove, i)
     }
   }else{
@@ -66,7 +67,15 @@ for (i in 1:ncol(VarMatrix)){
   }
 }
 
-#Remove genes from the matrix and genes.all
+# For linear vs non-linear correlation analysis
+remove= c()
+for (i in 1:ncol(VarMatrix)){
+  if(sum(is.na(VarMatrix[,i])) > 0){
+    remove = append(remove, i)
+  }
+}
+
+# Remove genes from the matrix and genes.all
 modif_VarMatrix <- VarMatrix[,-remove]
 genes.filtered = genes.all[-remove]
 
@@ -80,11 +89,15 @@ for(k in 1:ncol(modif_VarMatrix)){
 
 # View median distribution in histogram  ----------------------------------
 
-hist(VarMedian, ylim=c(0,70), xlim=c(0,0.006), breaks = length(VarMedian), xlab = "Median with NA removed")
+hist(VarMedian, ylim=c(0,70), xlim=c(0,0.006), breaks = length(VarMedian), xlab = "Median variance with NA removed")
 
-# Remove genes that are at the bottom 25 percentile  ----------------------
+# Remove genes that are at the bottom 25 or 40 percentile  ----------------------
 
+#For blood vd PBMC analysis
 percentile = quantile(VarMedian)
+
+# For linear vs non-linear correlation analysis
+percentile = quantile(VarMedian, probs = c(0, 0.4, 0.8, 1))
 
 remove_2 = c()
 for(l in 1:length(VarMedian)){

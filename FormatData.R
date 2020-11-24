@@ -2,8 +2,8 @@
 
 # Set path ----------------------------------------------------------------
 
-myPath = "~/github/ITA/"
-myDataPath = "~/github/ITA/Data/"
+myPath = "/Users/aina/Documents/X/Slutkurs/github/ITA"
+myDataPath = "/Users/aina/Documents/X/Slutkurs/github/ITA/Data/"
 
 # Load data ---------------------------------------------------------------
 setwd(myPath)
@@ -35,7 +35,7 @@ for (i in 1:length(files)) {
 # Save variance matix to file ---------------------------------------------
 
 setwd(myPath)
-write.csv(VarMatrix, file ="VaranceMatrix.csv", row.names = TRUE)
+write.csv(VarMatrix, file ="VaranceMatrix_new.csv", row.names = TRUE)
 
 
 # Remove genes that are missing in too many datasets ----------------------
@@ -46,7 +46,7 @@ PBMCData = c("ExprM.GSE82152.2020_10_16.gz", "ExprM.GSE120115.2020_10_22.gz", "E
 
 remove= c()
 for (i in 1:ncol(VarMatrix)){
-  if(sum(is.na(VarMatrix[,i])) >=4){
+  if(sum(is.na(VarMatrix[,i])) >2){
     na_blood = 0
     na_PBMC = 0
     for(j in 1:nrow(VarMatrix)){
@@ -58,7 +58,7 @@ for (i in 1:ncol(VarMatrix)){
         next
       }
     }
-    if( na_blood >=4 || na_PBMC >= 4){
+    if( na_blood >3 || na_PBMC >2){
       remove = append(remove, i)
     }
   }else{
@@ -100,4 +100,4 @@ genes.filtered = genes.filtered[-remove_2]
 # Save filtered genes to file ---------------------------------------------
 
 setwd(myPath)
-write.table(genes.filtered, file = "genes.filtered.txt", sep="\t", row.names = FALSE, col.names = FALSE, quote = FALSE)
+write.table(genes.filtered, file = "genes.filtered_new.txt", sep="\t", row.names = FALSE, col.names = FALSE, quote = FALSE)

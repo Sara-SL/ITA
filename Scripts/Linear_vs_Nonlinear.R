@@ -2,32 +2,31 @@
 
 library(infotheo)
 library(bigmemory)
+library(igraph)
 
 ## Set path ----------------------------------------------------------------
-
-myPath = "~/github/ITA"
-myDataPath = "~/github/ITA/Data/"
+myPath = "~/github/ITA/GeneData/"
+myDataPath = "~/github/ITA/ExpressionData/"
 myBigDataPath = "~/github/ITA/BigData/"
-
+myTablePath = "~/github/ITA/SupplementaryTables/"
+myFigurePath = "~/github/ITA/SupplementaryFigures/"
 
 ## Load data ---------------------------------------------------------------
-
 setwd(myPath)
-genes.filtered = sort(readLines("genes.filtered.txt"))
-bloodData = c("ExprM.GSE102459.2020_10_16.gz", "ExprM.GSE128224.2020_10_22.gz", "ExprM.GSE127792.2020_10_22.gz", "ExprM.GSE97590.2020_10_22.gz", "ExprM.GSE86627.2020_10_16.gz", "ExprM.GSE86331.2020_10_16.gz", "ExprM.GSE83951.2020_10_16.gz")
+genes.filtered = sort(readLines("genes.filtered_linear_vs_nonLinear.txt"))
 PBMCData = c("ExprM.GSE82152.2020_10_16.gz", "ExprM.GSE120115.2020_10_22.gz", "ExprM.GSE107990.2020_10_16.gz", "ExprM.GSE87186.2020_10_22.gz", "ExprM.GSE59743.2020_10_16.gz", "ExprM.GSE74816.2020_10_16.gz")
 datasets = PBMCData
 geneNames = as.matrix(read.table("hsapiens.SYMBOL.txt", sep="\t", header=F))
 ann.v = geneNames[,2]; 
 names(ann.v) = geneNames[,1]
 
+#### -------------------- Create expression & correlation matrix for each dataset -------------------------------
 
-## Linear correlation ------------------------------
-# corrL.linear -----------
+## Linear correlation ---------------------------------------------------
+
 # Create expression matrix
-
 corrL.linear = list()
-for(i in 4:length(datasets)){
+for(i in 1:length(datasets)){
   setwd(myDataPath)
   print(i)
   L1 = readLines(gzfile(datasets[i])); closeAllConnections()
@@ -38,16 +37,15 @@ for(i in 4:length(datasets)){
   for(k in 1:nrow(Mx)){Mx[k,] = Mx[k,]/max(Mx[k,],na.rm=T)}
   
   #Only keep the filtered genes
-  remove_3 = c()
+  genes.remove = c()
   for(j in 1:ncol(Mx)){
     if(colnames(Mx)[j] %in% genes.filtered){
       next()
     }else{
-      remove_3 = append(remove_3, j)
+      genes.remove = append(genes.remove, j)
     }
   }
-  Mx <- Mx[, -remove_3]
-  
+  Mx <- Mx[, -genes.remove]
   
   # Make a correlation matrix from the expression matrix
   corrL.linear = append(corrL.linear, list(cor(Mx, use="pairwise.complete.obs")))
@@ -64,21 +62,6 @@ for (i in 1:length(corrL.linear)) {
   corrL.linear[[i]] = replace(corrL.linear[[i]], corrL.linear[[i]] <= 0.7, NA)
 }
 
-setwd(myBigDataPath)
-corrL.linear = list()
-corrL.linear = append(corrL.linear, list(read.csv2(file = 'corrL_linear_PBMC1.csv')))
-corrL.linear = append(corrL.linear, list(read.csv2(file = 'corrL_linear_PBMC2.csv')))
-corrL.linear = append(corrL.linear, list(read.csv2(file = 'corrL_linear_PBMC4.csv')))
-corrL.linear = append(corrL.linear, list(read.csv2(file = 'corrL_linear_PBMC5.csv')))
-corrL.linear = append(corrL.linear, list(read.csv2(file = 'corrL_linear_PBMC6.csv')))
-
-for (i in 1:length(corrL.linear)) {
-  rownames(corrL.linear[[i]]) = corrL.linear[[i]][,1]
-  corrL.linear[[i]][1] <- NULL
-}
-
-# corrMx.linear --------
-
 # Initiate matrix for t-values
 setwd(myBigDataPath)
 corrMx.linear <- big.matrix(nrow = length(genes.filtered), ncol = length(genes.filtered), type = "double", init = NULL, backingfile = "corrMx_linear_backing.bin", descriptorfile = "corrMx_linear_descriptor.desc", shared = TRUE  )
@@ -86,7 +69,7 @@ options(bigmemory.allow.dimnames=TRUE)
 colnames(corrMx.linear) = genes.filtered
 rownames(corrMx.linear) = genes.filtered
 
-# Create correlation table for each gene and calculate statistics
+# Create correlation table for each gene and calculate the t-value
 for(ii in 1:length(genes.filtered)){
   print(ii)
   CorrTable.GeneX = matrix(nrow=length(datasets), ncol=length(genes.filtered))
@@ -119,7 +102,6 @@ write.big.matrix(corrMx.linear, "corrMx_linear.csv", row.names = TRUE, col.names
 
 
 ## Non-linear correlation ------------------------------------
-# corrL.nonLinear -------------
 
 # Create expression matrix 
 corrL.nonLinear = list()
@@ -133,44 +115,27 @@ for(i in 1:length(datasets)){
   colnames(Mx) = sapply(FUN=getElement, X=L2[2:length(L2)], 1)
   for(k in 1:nrow(Mx)){Mx[k,] = Mx[k,]/max(Mx[k,],na.rm=T)}
   
-  # Filter genes
-  remove_3 = c()
+  #Only keep the filtered genes
+  genes.remove = c()
   for(j in 1:ncol(Mx)){
     if(colnames(Mx)[j] %in% genes.filtered){
       next()
     }else{
-      remove_3 = append(remove_3, j)
+      genes.remove = append(genes.remove, j)
     }
   }
-  Mx <- Mx[, -remove_3]
+  Mx <- Mx[, -genes.remove]
   
   # Make a correlation matrix from the expression matrix
   Mx_disc <- discretize(Mx, disc = "equalfreq")
   corrL.nonLinear.i = mutinformation(Mx_disc, method = "mm")
-  #corrL.nonLinear = append(corrL.nonLinear, list(corrL.nonLinear.i))
+  corrL.nonLinear = append(corrL.nonLinear, list(corrL.nonLinear.i))
   
   # Save correlation matrix to file in case R crashes 
   setwd(myBigDataPath)
   filename = paste0("corrL_nonLinear_PBMC", i, ".csv")
   write.csv2(corrL.nonLinear.i, filename)
 }
-
-
-# Read nonLinear.corrL files --------------
-setwd(myBigDataPath)
-corrL.nonLinear = list()
-corrL.nonLinear = append(corrL.nonLinear, list(read.csv2(file = 'corrL_nonLinear_PBMC1.csv')))
-corrL.nonLinear = append(corrL.nonLinear, list(read.csv2(file = 'corrL_nonLinear_PBMC2.csv')))
-corrL.nonLinear = append(corrL.nonLinear, list(read.csv2(file = 'corrL_nonLinear_PBMC4.csv')))
-corrL.nonLinear = append(corrL.nonLinear, list(read.csv2(file = 'corrL_nonLinear_PBMC5.csv')))
-corrL.nonLinear = append(corrL.nonLinear, list(read.csv2(file = 'corrL_nonLinear_PBMC6.csv')))
-
-for (i in 1:length(corrL.nonLinear)) {
-  rownames(corrL.nonLinear[[i]]) = corrL.nonLinear[[i]][,1]
-  corrL.nonLinear[[i]][1] <- NULL
-}
-
-# corrMx.nonLinear-------------
 
 # Initiate matrix for t-values 
 setwd(myBigDataPath)
@@ -211,16 +176,9 @@ setwd(myBigDataPath)
 write.big.matrix(corrMx.nonLinear, "corrMx_nonLinear.csv", row.names = TRUE, col.names = TRUE, sep=',')
 
 
-
-
-
-
-### Statistics --------------------------------------------------------------
-
-## Find interactions that only exist in one of the tissues  ----------------
+#### --------------------- Statistics ----------------------------------
 
 # Only in linear -----------------------------------------------------------
-
 CorrM1 = matrix(nrow = length(genes.filtered), ncol = length(genes.filtered))
 rownames(CorrM1) = genes.filtered
 colnames(CorrM1) = genes.filtered
@@ -238,11 +196,11 @@ for(i in 1:ncol(CorrM1)){
 TopCorrM1 = matrix(unlist(CorrL1),ncol=3,byrow=T)
 colnames(TopCorrM1) = c("Gene 1", "Gene 2", "T-value")
 
-#Distribution of t-values 
+# Plot distribution of t-values 
 hist(as.numeric(TopCorrM1[,3]))
 
-# Only in non-linear ------------------------------------------------------------
 
+# Only in non-linear ------------------------------------------------------------
 CorrM2 = matrix(nrow = length(genes.filtered), ncol = length(genes.filtered))
 rownames(CorrM2) = genes.filtered
 colnames(CorrM2) = genes.filtered
@@ -250,7 +208,7 @@ for(i in 1:length(genes.filtered)){
   CorrM2[i,] = corrMx.nonLinear[i,]-corrMx.linear[i,]
 }
 
-N = 5
+N = 5 #first N interactions
 CorrL2 = list()
 for(i in 1:ncol(CorrM2)){
   vx = CorrM2[-i,i]
@@ -260,16 +218,16 @@ for(i in 1:ncol(CorrM2)){
 TopCorrM2 = matrix(unlist(CorrL2),ncol=3,byrow=T)
 colnames(TopCorrM2) = c("Gene 1", "Gene 2", "T-value")
 
-# Distribution of t-values
+# Plot distribution of t-values
 hist(as.numeric(TopCorrM2[,3]), xlim = c(0,100), breaks = length(TopCorrM2[,3]))
 
 
 ## Filter ToppCorrM  -------------------------------------
 
-# Cutoff = 1
+cutoff = 1
 remove = c()
 for(j in 1:length(TopCorrM1[,3])){
-  if(as.numeric(TopCorrM1[j,3]) < 1 || is.na(TopCorrM1[j,3]) ){
+  if(as.numeric(TopCorrM1[j,3]) < cutoff || is.na(TopCorrM1[j,3]) ){
     remove = append(remove, j)
   } else{
     next
@@ -277,10 +235,10 @@ for(j in 1:length(TopCorrM1[,3])){
 }
 TopCorrM1_filtered = TopCorrM1[-remove,]
 
-# nonLinear
+cutoff = 1
 remove = c()
 for(j in 1:length(TopCorrM2[,3])){
-  if(as.numeric(TopCorrM2[j,3]) < 1 || is.na(TopCorrM2[j,3])){
+  if(as.numeric(TopCorrM2[j,3]) < cutoff || is.na(TopCorrM2[j,3])){
     remove = append(remove, j)
   } else{
     next
@@ -289,37 +247,36 @@ for(j in 1:length(TopCorrM2[,3])){
 TopCorrM2_filtered = TopCorrM2[-remove,]
 
 
-## Create networks ------------------------------------------------------------
-
-install.packages("igraph")
-library(igraph)
+## -------------------- Create networks -------------------------------------## Create networks ------------------------------------------------------------
 
 Corr.Graph1 = simplify(graph.data.frame(TopCorrM1_filtered, directed=F), edge.attr.comb="max")
 Corr.Graph2 = simplify(graph.data.frame(TopCorrM2_filtered, directed=F), edge.attr.comb="max")
 
 
-# Anta att gr.x är Ert nätverksobjekt från igraph.
+# Plot settings
 V(Corr.Graph1)$label = ann.v[V(Corr.Graph1)$name]
-V(Corr.Graph1)$label.family="sans" # Detta ger en lite snyggare font
-V(Corr.Graph1)$label.cex=0.3 # Detta är storleken på fonten. Prova er fram tills ni hittar ett lämpligt värde.
-V(Corr.Graph1)$label.dist = 1
-plot.igraph(Corr.Graph1, vertex.size=3, main = "Correlations with Pearsson", sub = "N=5, cutoff=1" )
+V(Corr.Graph1)$label.family="sans" # type of font
+V(Corr.Graph1)$label.cex=0.4 # size of font
+V(Corr.Graph1)$label.dist = 0.5
+V(Corr.Graph1)$label.degree = -pi/2
+plot.igraph(Corr.Graph1, vertex.size=3, edge.arrow.size = 10, main = "Correlations with Pearsson", sub = "N=5, cutoff=1" )
 
-# Anta att gr.x är Ert nätverksobjekt från igraph.
+# Plot settings
 V(Corr.Graph2)$label = ann.v[V(Corr.Graph2)$name]
-V(Corr.Graph2)$label.family="sans" # Detta ger en lite snyggare font
-V(Corr.Graph2)$label.cex=0.3 # Detta är storleken på fonten. Prova er fram tills ni hittar ett lämpligt värde.
-V(Corr.Graph2)$label.dist = 1
-plot.igraph(Corr.Graph2, vertex.size=3, main = "Correlations with MI", sub = "N=5, cutoff=1" )
+V(Corr.Graph2)$label.family="sans" # type of font
+V(Corr.Graph2)$label.cex=0.4 # size of font
+V(Corr.Graph2)$label.dist = 0.5
+V(Corr.Graph2)$label.degree = -pi/2
+plot.igraph(Corr.Graph2, vertex.size=3, edge.arrow.size = 10, main = "Correlations with MI", sub = "N=5, cutoff=1" )
 
 
-## Analysis ----------------------------------------------------------------
+## --------------------------- Analysis ----------------------------------------------------------------
 
 # What kind of genes are hub-genes? i.e genes with many interactions
 top_genes1 = sort(degree(Corr.Graph1),decreasing=T)[1:20]
 top_genes2 = sort(degree(Corr.Graph2),decreasing=T)[1:20]
 
-## Print results ------------------------------------------
+## Summarize correlations for top 5 hub genes ------------------------------------------
 top_genes1_table = matrix(nrow = 0, ncol = 2)
 colnames(top_genes1_table) = c("Top gene", "Correlation gene")
 for(i in 1:5) {
@@ -334,6 +291,10 @@ for(i in 1:5) {
   }
 }
 top_genes1_table = top_genes1_table[!duplicated(top_genes1_table),]
+
+# Save correlations for hub genes in .csv file 
+write.csv(top_genes1_table, file="CorrelationsTop5HubGenes_linear.csv", sep = ',', col.names = TRUE)
+
 
 top_genes2_table = matrix(nrow = 0, ncol = 2)
 colnames(top_genes2_table) = c("Top gene", "Correlation gene")
@@ -350,9 +311,37 @@ for(i in 1:5) {
 }
 top_genes2_table = top_genes2_table[!duplicated(top_genes2_table),]
 
+# Save correlations for hub genes in .csv file 
+write.csv(top_genes2_table, file="CorrelationsTop5HubGenes_nonLinear.csv", sep = ',', col.names = TRUE)
 
 
-write.csv2(TopCorrM1_filtered, 'TopCorr_filtered_linear')
-write.csv2(TopCorrM1_filtered, 'TopCorr_filtered_nonLinear')
-write.csv2(TopGenes, 'TopCorr_filtered_nonLinear')
 
+# ----------------- Extra ----------------
+
+# In case R has crached:
+
+# Read corrL.linear files to a list
+setwd(myBigDataPath)
+corrL.linear = list()
+corrL.linear = append(corrL.linear, list(read.csv2(file = 'corrL_linear_PBMC1.csv')))
+corrL.linear = append(corrL.linear, list(read.csv2(file = 'corrL_linear_PBMC2.csv')))
+corrL.linear = append(corrL.linear, list(read.csv2(file = 'corrL_linear_PBMC4.csv')))
+corrL.linear = append(corrL.linear, list(read.csv2(file = 'corrL_linear_PBMC5.csv')))
+corrL.linear = append(corrL.linear, list(read.csv2(file = 'corrL_linear_PBMC6.csv')))
+for (i in 1:length(corrL.linear)) {
+  rownames(corrL.linear[[i]]) = corrL.linear[[i]][,1]
+  corrL.linear[[i]][1] <- NULL
+}
+
+# Read corrL.nonLinear files to a list
+setwd(myBigDataPath)
+corrL.nonLinear = list()
+corrL.nonLinear = append(corrL.nonLinear, list(read.csv2(file = 'corrL_nonLinear_PBMC1.csv')))
+corrL.nonLinear = append(corrL.nonLinear, list(read.csv2(file = 'corrL_nonLinear_PBMC2.csv')))
+corrL.nonLinear = append(corrL.nonLinear, list(read.csv2(file = 'corrL_nonLinear_PBMC4.csv')))
+corrL.nonLinear = append(corrL.nonLinear, list(read.csv2(file = 'corrL_nonLinear_PBMC5.csv')))
+corrL.nonLinear = append(corrL.nonLinear, list(read.csv2(file = 'corrL_nonLinear_PBMC6.csv')))
+for (i in 1:length(corrL.nonLinear)) {
+  rownames(corrL.nonLinear[[i]]) = corrL.nonLinear[[i]][,1]
+  corrL.nonLinear[[i]][1] <- NULL
+}

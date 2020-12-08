@@ -1,19 +1,18 @@
 ## FormatData
 
 # Set path ----------------------------------------------------------------
-
-myPath = "/Users/aina/Documents/X/Slutkurs/github/ITA"
-myDataPath = "/Users/aina/Documents/X/Slutkurs/github/ITA/Data/"
+myPath = "~/github/ITA/GeneData"
+myDataPath = "~/github/ITA/ExpressionData/"
+myTablePath = "~/github/ITA/SupplementaryTables/"
 
 # Load data ---------------------------------------------------------------
 setwd(myPath)
 fn.x = "hsapiens.AllCodingHumanGenes.txt"
 genes.all = sort(readLines(fn.x))
-
 files = list.files(path = myDataPath)
 
-# Create varance matrix ---------------------------------------------------
 
+# Create varance matrix ---------------------------------------------------
 VarMatrix = matrix(nrow=length(files), ncol=length(genes.all))
 colnames(VarMatrix) = genes.all 
 rownames(VarMatrix) = files
@@ -33,18 +32,16 @@ for (i in 1:length(files)) {
 }
 
 # Save variance matix to file ---------------------------------------------
-
-setwd(myPath)
-write.csv(VarMatrix, file ="VaranceMatrix_new.csv", row.names = TRUE)
+setwd(myTablePath)
+write.csv(VarMatrix, file ="Supl.Table1_VaranceMatrix.csv", row.names = TRUE)
 
 
 # Remove genes that are missing in too many datasets ----------------------
-  # Each gene needs to exist in at least 4 datasets for each tissuetype 
-
 bloodData = c("ExprM.GSE102459.2020_10_16.gz", "ExprM.GSE128224.2020_10_22.gz", "ExprM.GSE127792.2020_10_22.gz", "ExprM.GSE97590.2020_10_22.gz", "ExprM.GSE86627.2020_10_16.gz", "ExprM.GSE86331.2020_10_16.gz", "ExprM.GSE83951.2020_10_16.gz")
 PBMCData = c("ExprM.GSE82152.2020_10_16.gz", "ExprM.GSE120115.2020_10_22.gz", "ExprM.GSE107990.2020_10_16.gz", "ExprM.GSE87186.2020_10_22.gz", "ExprM.GSE59743.2020_10_16.gz", "ExprM.GSE74816.2020_10_16.gz")
 
-# For blood vs PBMC analysis
+# For blood vs PBMC analysis ----
+# Each gene needs to exist in at least 4 datasets for each tissuetype 
 remove= c()
 for (i in 1:ncol(VarMatrix)){
   if(sum(is.na(VarMatrix[,i])) >2){
@@ -67,7 +64,7 @@ for (i in 1:ncol(VarMatrix)){
   }
 }
 
-# For linear vs non-linear correlation analysis
+# For linear vs non-linear correlation analysis ----
 remove= c()
 for (i in 1:ncol(VarMatrix)){
   if(sum(is.na(VarMatrix[,i])) > 0){
@@ -75,21 +72,20 @@ for (i in 1:ncol(VarMatrix)){
   }
 }
 
-# Remove genes from the matrix and genes.all
+
+# Remove genes from the matrix and genes.all----
 modif_VarMatrix <- VarMatrix[,-remove]
 genes.filtered = genes.all[-remove]
 
 
 # Calculate median for each column(gene) ----------------------------------
-
 VarMedian = c()
 for(k in 1:ncol(modif_VarMatrix)){
   VarMedian = append(VarMedian, median(modif_VarMatrix[,k], na.rm=TRUE))
 }
 
 # View median distribution in histogram  ----------------------------------
-
-hist(VarMedian, ylim=c(0,70), xlim=c(0,0.006), breaks = length(VarMedian), xlab = "Median variance with NA removed")
+hist(VarMedian, ylim=c(0,70), xlim=c(0,0.006), breaks = length(VarMedian), xlab = "Median variance with NA removed", main = 'Distribution of median variance')
 
 # Remove genes that are at the bottom 25 or 40 percentile  ----------------------
 
@@ -111,6 +107,7 @@ genes.filtered = genes.filtered[-remove_2]
 
 
 # Save filtered genes to file ---------------------------------------------
-
 setwd(myPath)
-write.table(genes.filtered, file = "genes.filtered_new.txt", sep="\t", row.names = FALSE, col.names = FALSE, quote = FALSE)
+write.table(genes.filtered, file = "genes.filtered_blood_vs_PBMC.txt", sep="\t", row.names = FALSE, col.names = FALSE, quote = FALSE)
+#or
+write.table(genes.filtered, file = "genes.filtered_linear_vs_nonLinear.txt", sep="\t", row.names = FALSE, col.names = FALSE, quote = FALSE)

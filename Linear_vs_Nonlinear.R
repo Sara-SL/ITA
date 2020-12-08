@@ -13,7 +13,9 @@ myBigDataPath = "~/github/ITA/BigData/"
 
 setwd(myPath)
 genes.filtered = sort(readLines("genes.filtered.txt"))
-datasets = list.files(path = myDataPath)
+bloodData = c("ExprM.GSE102459.2020_10_16.gz", "ExprM.GSE128224.2020_10_22.gz", "ExprM.GSE127792.2020_10_22.gz", "ExprM.GSE97590.2020_10_22.gz", "ExprM.GSE86627.2020_10_16.gz", "ExprM.GSE86331.2020_10_16.gz", "ExprM.GSE83951.2020_10_16.gz")
+PBMCData = c("ExprM.GSE82152.2020_10_16.gz", "ExprM.GSE120115.2020_10_22.gz", "ExprM.GSE107990.2020_10_16.gz", "ExprM.GSE87186.2020_10_22.gz", "ExprM.GSE59743.2020_10_16.gz", "ExprM.GSE74816.2020_10_16.gz")
+datasets = PBMCData
 geneNames = as.matrix(read.table("hsapiens.SYMBOL.txt", sep="\t", header=F))
 ann.v = geneNames[,2]; 
 names(ann.v) = geneNames[,1]
@@ -95,16 +97,17 @@ rm(corrL.linear)
 # Non-linear correlation ------------------------------------
 
 # Create expression matrix 
-setwd(myDataPath)
+
 corrL.nonLinear = list()
 for(i in 1:length(datasets)){
+  setwd(myDataPath)
   print(i)
   L1 = readLines(gzfile(datasets[i])); closeAllConnections()
   L2 = strsplit(L1, split=",")
   Mx = sapply(FUN=function(v){return(as.numeric(v[-1]))},X=L2[2:length(L2)])
   rownames(Mx) = L2[[1]][-1]
   colnames(Mx) = sapply(FUN=getElement, X=L2[2:length(L2)], 1)
-  for(i in 1:nrow(Mx)){Mx[i,] = Mx[i,]/max(Mx[i,],na.rm=T)}
+  for(k in 1:nrow(Mx)){Mx[k,] = Mx[k,]/max(Mx[k,],na.rm=T)}
   
   # Filter genes
   remove_3 = c()
@@ -120,10 +123,11 @@ for(i in 1:length(datasets)){
   # Make a correlation matrix from the expression matrix
   Mx_disc <- discretize(Mx, disc = "equalfreq")
   corrL.nonLinear.i = mutinformation(Mx_disc, method = "mm")
-  corrL.nonLinear = append(corrL.nonLinear, list(corrL.nonLinear.i))
+  #corrL.nonLinear = append(corrL.nonLinear, list(corrL.nonLinear.i))
   
   # Save correlation matrix to file in case R crashes 
-  filename = paste0("corrL_nonLinear_", i, ".csv")
+  setwd(myBigDataPath)
+  filename = paste0("corrL_nonLinear_PBMC", i, ".csv")
   write.csv2(corrL.nonLinear.i, filename)
 }
 
@@ -164,6 +168,8 @@ for(ii in 1:length(genes.filtered)){
 # Save matrix to .csv file
 setwd(myBigDataPath)
 write.big.matrix(corrMx.nonLinear, "corrMx_nonLinear.csv", row.names = TRUE, col.names = TRUE, sep=',')
+
+
 
 
 ### Statistics --------------------------------------------------------------

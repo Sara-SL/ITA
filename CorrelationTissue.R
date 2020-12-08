@@ -670,17 +670,3 @@ write.big.matrix(corrMx, "corrMx_PBMC.csv", row.names = TRUE, col.names = TRUE, 
 
 
 
-# Find max in corrMx_blood
-max = c()
-for(a in 1:ncol(corrMx_test)){
-  col = corrMx_test[-a,a]
-  max = append(max, max(col))
-}
-
-# Convert NA to Inf
-corrMx_test = corrMx
-for(aa in 1:ncol(corrMx_test)){
-  corrMx_test[aa,aa] = Inf
-}
-
-

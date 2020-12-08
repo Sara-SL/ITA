@@ -5,15 +5,16 @@ library(bigmemory)
 
 ## Set path ----------------------------------------------------------------
 
-myPath = "~/github/ITA"
-myDataPath = "~/github/ITA/Data/"
-myBigDataPath = "~/github/ITA/BigData/"
+myPath = "/Users/aina/Documents/X/Slutkurs/github/ITA"
+myDataPath = "/Users/aina/Documents/X/Slutkurs/github/ITA/Data/"
+myBigDataPath = "/Users/aina/Documents/X/Slutkurs/github/ITA/myBigData/"
 
 ## Load data ---------------------------------------------------------------
 
 setwd(myPath)
 genes.filtered = sort(readLines("genes.filtered.txt"))
-datasets = list.files(path = myDataPath)
+# datasets = list.files(path = myDataPath)
+datasets = c("ExprM.GSE102459.2020_10_16.gz", "ExprM.GSE128224.2020_10_22.gz", "ExprM.GSE127792.2020_10_22.gz", "ExprM.GSE97590.2020_10_22.gz", "ExprM.GSE86627.2020_10_16.gz", "ExprM.GSE86331.2020_10_16.gz", "ExprM.GSE83951.2020_10_16.gz")
 geneNames = as.matrix(read.table("hsapiens.SYMBOL.txt", sep="\t", header=F))
 ann.v = geneNames[,2]; 
 names(ann.v) = geneNames[,1]
@@ -97,7 +98,7 @@ rm(corrL.linear)
 # Create expression matrix 
 setwd(myDataPath)
 corrL.nonLinear = list()
-for(i in 1:length(datasets)){
+for(i in 2:length(datasets)){
   print(i)
   L1 = readLines(gzfile(datasets[i])); closeAllConnections()
   L2 = strsplit(L1, split=",")
@@ -119,12 +120,26 @@ for(i in 1:length(datasets)){
   
   # Make a correlation matrix from the expression matrix
   Mx_disc <- discretize(Mx, disc = "equalfreq")
-  corrL.nonLinear.i = mutinformation(Mx_disc, method = "mm")
-  corrL.nonLinear = append(corrL.nonLinear, list(corrL.nonLinear.i))
+  
+  temp = matrix(ncol = ncol(Mx), nrow = ncol(Mx))
+  colnames(temp) = colnames(Mx)
+  rownames(temp) = colnames(Mx)
+  for(ii in 1:ncol(Mx)){
+    for(jj in 1:ncol(Mx)){
+      temp = mutinformation(Mx_disc[,ii], Mx_disc[,jj], method = "mm")
+    }
+    print(ii)
+  }
+  
+  
+  #corrL.nonLinear.i = mutinformation(Mx_disc, method = "mm")
+  #corrL.nonLinear = append(corrL.nonLinear, list(corrL.nonLinear.i))
   
   # Save correlation matrix to file in case R crashes 
-  filename = paste0("corrL_nonLinear_", i, ".csv")
-  write.csv2(corrL.nonLinear.i, filename)
+  filename = paste0("corrL_nonLinear_blood_", i, ".csv")
+  write.csv2(temp, filename)
+  
+  #write.csv2(corrL.nonLinear.i, filename)
 }
 
 # Initiate matrix for t-values

@@ -172,6 +172,12 @@ write.big.matrix(corrMx.PBMC, "corrMx_PBMC.csv", row.names = TRUE, col.names = T
 
 
 #### --------------------- Statistics -------------------------------------------
+## Plot all gene-gene correlations in blood and PBMC
+blood = as.matrix(corrMx.blood)
+PBMC = as.matrix(corrMx.PBMC)
+
+plot(blood[lower.tri(blood)], PBMC[lower.tri(PBMC)], main = "T-value for all gene-gene correlations", xlab = "t-value in PBMC", ylab = "t-value in blood")
+
 ## ---- Find interactions that only exist in one of the tissues  ----------------
 
 # Only in PBMC -----------------------------------------------------------

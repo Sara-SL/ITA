@@ -172,6 +172,12 @@ write.big.matrix(corrMx.PBMC, "corrMx_PBMC.csv", row.names = TRUE, col.names = T
 
 
 #### --------------------- Statistics -------------------------------------------
+## Plot all gene-gene correlations in blood and PBMC
+blood = as.matrix(corrMx.blood)
+PBMC = as.matrix(corrMx.PBMC)
+
+plot(blood[lower.tri(blood)], PBMC[lower.tri(PBMC)], main = "T-value for all gene-gene correlations", xlab = "t-value in PBMC", ylab = "t-value in blood")
+
 ## ---- Find interactions that only exist in one of the tissues  ----------------
 
 # Only in PBMC -----------------------------------------------------------
@@ -193,7 +199,7 @@ TopCorrM1 = matrix(unlist(CorrL1),ncol=3,byrow=T)
 colnames(TopCorrM1) = c("Gene 1", "Gene 2", "T-value")
 
 # Plot distribution of t-values 
-hist(as.numeric(TopCorrM1[,3]))
+hist(as.numeric(TopCorrM1[,3]), breaks = length(TopCorrM1[,3]))
 
 
 # Only in blood ------------------------------------------------------------
@@ -215,7 +221,7 @@ TopCorrM2 = matrix(unlist(CorrL2),ncol=3,byrow=T)
 colnames(TopCorrM2) = c("Gene 1", "Gene 2", "T-value")
 
 # Plot distribution of t-values
-hist(as.numeric(TopCorrM2[,3]), xlim = c(0,100), breaks = length(TopCorrM2[,3]))
+hist(as.numeric(TopCorrM2[,3]), breaks = length(TopCorrM2[,3]))
 
 
 ## Filter ToppCorrM  -------------------------------------
@@ -232,8 +238,8 @@ for(j in 1:length(TopCorrM1[,3])){
 TopCorrM1_filtered = TopCorrM1[-remove,]
 
 # Save table to file
-write.csv(top_genes2_table, file="Supl.Table2_TopCorrPBMC.csv", sep = ',', col.names = TRUE)
-#write.csv(top_genes2_table, file="Supl.Table4_TopCorrPBMC_cutoff0.6.csv", sep = ',', col.names = TRUE)
+write.csv(TopCorrM1_filtered, file="Supl.Table2_TopCorrPBMC.csv", sep = ',', col.names = TRUE)
+#write.csv(TopCorrM1_filtered, file="Supl.Table4_TopCorrPBMC_cutoff0.6.csv", sep = ',', col.names = TRUE)
 
 
 cutoff = 1 # Also tried with 0,6
@@ -248,8 +254,8 @@ for(j in 1:length(TopCorrM2[,3])){
 TopCorrM2_filtered = TopCorrM2[-remove,]
 
 # Save table to file
-write.csv(top_genes2_table, file="Supl.Table3_TopCorrBlood.csv", sep = ',', col.names = TRUE)
-#write.csv(top_genes2_table, file="Supl.Table5_TopCorrBlood_cutoff0.6.csv", sep = ',', col.names = TRUE)
+write.csv(TopCorrM2_filtered, file="Supl.Table3_TopCorrBlood.csv", sep = ',', col.names = TRUE)
+#write.csv(TopCorrM2_filtered, file="Supl.Table5_TopCorrBlood_cutoff0.6.csv", sep = ',', col.names = TRUE)
 
 
 ## -------------------- Create networks -------------------------------------

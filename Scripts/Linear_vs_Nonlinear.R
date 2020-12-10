@@ -14,11 +14,13 @@ myFigurePath = "~/github/ITA/SupplementaryFigures/"
 ## Load data ---------------------------------------------------------------
 setwd(myPath)
 genes.filtered = sort(readLines("genes.filtered_linear_vs_nonLinear.txt"))
-PBMCData = c("ExprM.GSE82152.2020_10_16.gz", "ExprM.GSE120115.2020_10_22.gz", "ExprM.GSE107990.2020_10_16.gz", "ExprM.GSE87186.2020_10_22.gz", "ExprM.GSE59743.2020_10_16.gz", "ExprM.GSE74816.2020_10_16.gz")
+PBMCData = c("ExprM.GSE82152.2020_10_16.gz", "ExprM.GSE120115.2020_10_22.gz", "ExprM.GSE87186.2020_10_22.gz", "ExprM.GSE59743.2020_10_16.gz", "ExprM.GSE74816.2020_10_16.gz")
 datasets = PBMCData
 geneNames = as.matrix(read.table("hsapiens.SYMBOL.txt", sep="\t", header=F))
 ann.v = geneNames[,2]; 
 names(ann.v) = geneNames[,1]
+
+# For loading corrL.linear and corrL.nonLinear (if R has crashed) see secion "Extra"
 
 #### -------------------- Create expression & correlation matrix for each dataset -------------------------------
 
@@ -129,7 +131,10 @@ for(i in 1:length(datasets)){
   # Make a correlation matrix from the expression matrix
   Mx_disc <- discretize(Mx, disc = "equalfreq")
   corrL.nonLinear.i = mutinformation(Mx_disc, method = "mm")
-  corrL.nonLinear = append(corrL.nonLinear, list(corrL.nonLinear.i))
+  
+  # If all datsets could be run, then following line of code could save the resulting matrices in a list
+  #corrL.nonLinear = append(corrL.nonLinear, list(corrL.nonLinear.i))
+  # In our case the code in section "Extra" was used after running this forloop
   
   # Save correlation matrix to file in case R crashes 
   setwd(myBigDataPath)
@@ -177,6 +182,12 @@ write.big.matrix(corrMx.nonLinear, "corrMx_nonLinear.csv", row.names = TRUE, col
 
 
 #### --------------------- Statistics ----------------------------------
+## Plot all gene-gene correlations in blood and PBMC
+linear = as.matrix(corrMx.linear)
+nonLinear = as.matrix(corrMx.nonLinear)
+
+plot(linear[lower.tri(linear)], nonLinear[lower.tri(nonLinear)], ylim=c(0,40), main = "T-value for all gene-gene correlations", xlab = "t-value with Pearson", ylab = "t-value with MI")
+
 
 # Only in linear -----------------------------------------------------------
 CorrM1 = matrix(nrow = length(genes.filtered), ncol = length(genes.filtered))
@@ -197,7 +208,7 @@ TopCorrM1 = matrix(unlist(CorrL1),ncol=3,byrow=T)
 colnames(TopCorrM1) = c("Gene 1", "Gene 2", "T-value")
 
 # Plot distribution of t-values 
-hist(as.numeric(TopCorrM1[,3]))
+hist(as.numeric(TopCorrM1[,3]), xlim = c(0,100), breaks = length(TopCorrM1[,3]), main = 'distribution of t-values with Pearson', xlab = 't-value')
 
 
 # Only in non-linear ------------------------------------------------------------
@@ -219,12 +230,12 @@ TopCorrM2 = matrix(unlist(CorrL2),ncol=3,byrow=T)
 colnames(TopCorrM2) = c("Gene 1", "Gene 2", "T-value")
 
 # Plot distribution of t-values
-hist(as.numeric(TopCorrM2[,3]), xlim = c(0,100), breaks = length(TopCorrM2[,3]))
+hist(as.numeric(TopCorrM2[,3]), xlim = c(-100,10), breaks = length(TopCorrM2[,3]), main = 'distribution of t-values with MI', xlab = 't-value')
 
 
 ## Filter ToppCorrM  -------------------------------------
 
-cutoff = 1
+cutoff = 40
 remove = c()
 for(j in 1:length(TopCorrM1[,3])){
   if(as.numeric(TopCorrM1[j,3]) < cutoff || is.na(TopCorrM1[j,3]) ){
@@ -235,7 +246,7 @@ for(j in 1:length(TopCorrM1[,3])){
 }
 TopCorrM1_filtered = TopCorrM1[-remove,]
 
-cutoff = 1
+cutoff = -40
 remove = c()
 for(j in 1:length(TopCorrM2[,3])){
   if(as.numeric(TopCorrM2[j,3]) < cutoff || is.na(TopCorrM2[j,3])){
@@ -267,7 +278,7 @@ V(Corr.Graph2)$label.family="sans" # type of font
 V(Corr.Graph2)$label.cex=0.4 # size of font
 V(Corr.Graph2)$label.dist = 0.5
 V(Corr.Graph2)$label.degree = -pi/2
-plot.igraph(Corr.Graph2, vertex.size=3, edge.arrow.size = 10, main = "Correlations with MI", sub = "N=5, cutoff=1" )
+plot.igraph(Corr.Graph2, vertex.size=3, edge.arrow.size = 10, main = "Correlations with MI", sub = "N=5, cutoff=-1" )
 
 
 ## --------------------------- Analysis ----------------------------------------------------------------

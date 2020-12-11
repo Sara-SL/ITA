@@ -230,7 +230,7 @@ TopCorrM2 = matrix(unlist(CorrL2),ncol=3,byrow=T)
 colnames(TopCorrM2) = c("Gene 1", "Gene 2", "T-value")
 
 # Plot distribution of t-values
-hist(as.numeric(TopCorrM2[,3]), xlim = c(-100,10), breaks = length(TopCorrM2[,3]), main = 'distribution of t-values with MI', xlab = 't-value')
+hist(as.numeric(TopCorrM2[,3]), xlim = c(-150,50), breaks = length(TopCorrM2[,3]), main = 'distribution of t-values with MI', xlab = 't-value')
 
 
 ## Filter ToppCorrM  -------------------------------------
@@ -270,7 +270,7 @@ V(Corr.Graph1)$label.family="sans" # type of font
 V(Corr.Graph1)$label.cex=0.4 # size of font
 V(Corr.Graph1)$label.dist = 0.5
 V(Corr.Graph1)$label.degree = -pi/2
-plot.igraph(Corr.Graph1, vertex.size=3, edge.arrow.size = 10, main = "Correlations with Pearsson", sub = "N=5, cutoff=1" )
+plot.igraph(Corr.Graph1, vertex.size=3, edge.arrow.size = 10, main = "Correlations with Pearsson", sub = "N=5, cutoff=40" )
 
 # Plot settings
 V(Corr.Graph2)$label = ann.v[V(Corr.Graph2)$name]
@@ -278,7 +278,7 @@ V(Corr.Graph2)$label.family="sans" # type of font
 V(Corr.Graph2)$label.cex=0.4 # size of font
 V(Corr.Graph2)$label.dist = 0.5
 V(Corr.Graph2)$label.degree = -pi/2
-plot.igraph(Corr.Graph2, vertex.size=3, edge.arrow.size = 10, main = "Correlations with MI", sub = "N=5, cutoff=-1" )
+plot.igraph(Corr.Graph2, vertex.size=3, edge.arrow.size = 10, main = "Correlations with MI", sub = "N=5, cutoff=-40" )
 
 
 ## --------------------------- Analysis ----------------------------------------------------------------

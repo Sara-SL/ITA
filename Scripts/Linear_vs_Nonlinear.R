@@ -51,7 +51,7 @@ for(i in 1:length(datasets)){
   
   # Make a correlation matrix from the expression matrix
   corrL.linear = append(corrL.linear, list(cor(Mx, use="pairwise.complete.obs")))
-
+  
   # Save correlation matrix to file in case R crashes 
   setwd(myBigDataPath)
   filename = paste0("corrL_linear_PBMC", i, ".csv")
@@ -181,6 +181,18 @@ setwd(myBigDataPath)
 write.big.matrix(corrMx.nonLinear, "corrMx_nonLinear.csv", row.names = TRUE, col.names = TRUE, sep=',')
 
 
+
+## Normalize values by calculating z-scores ------
+corrMx.linear = as.matrix(corrMx.linear)
+mean = mean(corrMx.linear[lower.tri(corrMx.linear)], na.rm = TRUE)
+sdVar = sd(corrMx.linear[lower.tri(corrMx.linear)], na.rm = TRUE)
+corrMx.linear.Z = (corrMx.linear-mean)/sdVar
+
+corrMx.nonLinear = as.matrix(corrMx.nonLinear)
+mean = mean(corrMx.nonLinear[lower.tri(corrMx.nonLinear)])
+sdVar = sd(corrMx.nonLinear[lower.tri(corrMx.nonLinear)])
+corrMx.nonLinear.Z = (corrMx.nonLinear-mean)/sdVar
+
 #### --------------------- Statistics ----------------------------------
 ## Plot all gene-gene correlations in blood and PBMC
 linear = as.matrix(corrMx.linear)
@@ -188,13 +200,13 @@ nonLinear = as.matrix(corrMx.nonLinear)
 
 plot(linear[lower.tri(linear)], nonLinear[lower.tri(nonLinear)], ylim=c(0,40), main = "T-value for all gene-gene correlations", xlab = "t-value with Pearson", ylab = "t-value with MI")
 
-
+plot(corrMx.linear.Z[lower.tri(corrMx.linear.Z)], corrMx.nonLinear.Z[lower.tri(corrMx.nonLinear.Z)], xlim=c(0,30), ylim=c(0,40), main = "Z-score for all gene-gene correlations", xlab = "Z-score with Pearson", ylab = "Z-score with MI")
 # Only in linear -----------------------------------------------------------
 CorrM1 = matrix(nrow = length(genes.filtered), ncol = length(genes.filtered))
 rownames(CorrM1) = genes.filtered
 colnames(CorrM1) = genes.filtered
 for(i in 1:length(genes.filtered)){
-  CorrM1[i,] = corrMx.linear[i,]-corrMx.nonLinear[i,]
+  CorrM1[i,] = corrMx.linear.Z[i,]-corrMx.nonLinear.Z[i,]
 }
 
 N = 5 #first N interactions
@@ -205,10 +217,10 @@ for(i in 1:ncol(CorrM1)){
   CorrL1[[i]] = rbind(rep(rownames(CorrM1)[i],N),names(vx2[1:N]),vx2[1:N])
 }
 TopCorrM1 = matrix(unlist(CorrL1),ncol=3,byrow=T)
-colnames(TopCorrM1) = c("Gene 1", "Gene 2", "T-value")
+colnames(TopCorrM1) = c("Gene 1", "Gene 2", "Z-score")
 
-# Plot distribution of t-values 
-hist(as.numeric(TopCorrM1[,3]), xlim = c(0,100), breaks = length(TopCorrM1[,3]), main = 'distribution of t-values with Pearson', xlab = 't-value')
+# Plot distribution of z-score 
+hist(as.numeric(TopCorrM1[,3]), xlim = c(-30,10), breaks = length(TopCorrM1[,3]), main = 'distribution of z-score with Pearson', xlab = 'z-score')
 
 
 # Only in non-linear ------------------------------------------------------------
@@ -216,7 +228,7 @@ CorrM2 = matrix(nrow = length(genes.filtered), ncol = length(genes.filtered))
 rownames(CorrM2) = genes.filtered
 colnames(CorrM2) = genes.filtered
 for(i in 1:length(genes.filtered)){
-  CorrM2[i,] = corrMx.nonLinear[i,]-corrMx.linear[i,]
+  CorrM2[i,] = corrMx.nonLinear.Z[i,]-corrMx.linear.Z[i,]
 }
 
 N = 5 #first N interactions
@@ -227,15 +239,15 @@ for(i in 1:ncol(CorrM2)){
   CorrL2[[i]] = rbind(rep(rownames(CorrM2)[i],N),names(vx2[1:N]),vx2[1:N])
 }
 TopCorrM2 = matrix(unlist(CorrL2),ncol=3,byrow=T)
-colnames(TopCorrM2) = c("Gene 1", "Gene 2", "T-value")
+colnames(TopCorrM2) = c("Gene 1", "Gene 2", "Z-score")
 
-# Plot distribution of t-values
-hist(as.numeric(TopCorrM2[,3]), xlim = c(-150,50), breaks = length(TopCorrM2[,3]), main = 'distribution of t-values with MI', xlab = 't-value')
+# Plot distribution of z-scores
+hist(as.numeric(TopCorrM2[,3]), xlim = c(-20,40), breaks = length(TopCorrM2[,3]), main = 'distribution of z-score with MI', xlab = 'z-score')
 
 
 ## Filter ToppCorrM  -------------------------------------
 
-cutoff = 40
+cutoff = 1
 remove = c()
 for(j in 1:length(TopCorrM1[,3])){
   if(as.numeric(TopCorrM1[j,3]) < cutoff || is.na(TopCorrM1[j,3]) ){
@@ -246,7 +258,7 @@ for(j in 1:length(TopCorrM1[,3])){
 }
 TopCorrM1_filtered = TopCorrM1[-remove,]
 
-cutoff = -40
+cutoff = 1
 remove = c()
 for(j in 1:length(TopCorrM2[,3])){
   if(as.numeric(TopCorrM2[j,3]) < cutoff || is.na(TopCorrM2[j,3])){
@@ -270,7 +282,7 @@ V(Corr.Graph1)$label.family="sans" # type of font
 V(Corr.Graph1)$label.cex=0.4 # size of font
 V(Corr.Graph1)$label.dist = 0.5
 V(Corr.Graph1)$label.degree = -pi/2
-plot.igraph(Corr.Graph1, vertex.size=3, edge.arrow.size = 10, main = "Correlations with Pearsson", sub = "N=5, cutoff=40" )
+plot.igraph(Corr.Graph1, vertex.size=3, edge.arrow.size = 10, main = "Correlations with Pearsson", sub = "N=5, cutoff=1" )
 
 # Plot settings
 V(Corr.Graph2)$label = ann.v[V(Corr.Graph2)$name]
@@ -278,7 +290,7 @@ V(Corr.Graph2)$label.family="sans" # type of font
 V(Corr.Graph2)$label.cex=0.4 # size of font
 V(Corr.Graph2)$label.dist = 0.5
 V(Corr.Graph2)$label.degree = -pi/2
-plot.igraph(Corr.Graph2, vertex.size=3, edge.arrow.size = 10, main = "Correlations with MI", sub = "N=5, cutoff=-40" )
+plot.igraph(Corr.Graph2, vertex.size=3, edge.arrow.size = 10, main = "Correlations with MI", sub = "N=5, cutoff=1" )
 
 
 ## --------------------------- Analysis ----------------------------------------------------------------

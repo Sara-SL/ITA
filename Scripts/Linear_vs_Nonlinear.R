@@ -180,7 +180,7 @@ for(ii in 1:length(genes.filtered)){
 setwd(myBigDataPath)
 write.big.matrix(corrMx.nonLinear, "corrMx_nonLinear.csv", row.names = TRUE, col.names = TRUE, sep=',')
 
-
+#### --------------------- Statistics ----------------------------------
 
 ## Normalize values by calculating z-scores ------
 corrMx.linear = as.matrix(corrMx.linear)
@@ -193,14 +193,11 @@ mean = mean(corrMx.nonLinear[lower.tri(corrMx.nonLinear)])
 sdVar = sd(corrMx.nonLinear[lower.tri(corrMx.nonLinear)])
 corrMx.nonLinear.Z = (corrMx.nonLinear-mean)/sdVar
 
-#### --------------------- Statistics ----------------------------------
 ## Plot all gene-gene correlations in blood and PBMC
-linear = as.matrix(corrMx.linear)
-nonLinear = as.matrix(corrMx.nonLinear)
+plot(corrMx.linear.Z[lower.tri(corrMx.linear.Z)], corrMx.nonLinear.Z[lower.tri(corrMx.nonLinear.Z)], xlim=c(-1,20), ylim=c(0,35), main = "Z-score for all gene-gene correlations", xlab = "Z-score with Pearson", ylab = "Z-score with MI")
+plot(corrMx.linear.Z[lower.tri(corrMx.linear.Z)], corrMx.nonLinear.Z[lower.tri(corrMx.nonLinear.Z)], xlim=c(-1,3), ylim=c(0,15), main = "Z-score for all gene-gene correlations", xlab = "Z-score with Pearson", ylab = "Z-score with MI")
+plot(corrMx.linear.Z[lower.tri(corrMx.linear.Z)], corrMx.nonLinear.Z[lower.tri(corrMx.nonLinear.Z)], xlim=c(-1,1), ylim=c(0,6), main = "Z-score for all gene-gene correlations", xlab = "Z-score with Pearson", ylab = "Z-score with MI")
 
-plot(linear[lower.tri(linear)], nonLinear[lower.tri(nonLinear)], ylim=c(0,40), main = "T-value for all gene-gene correlations", xlab = "t-value with Pearson", ylab = "t-value with MI")
-
-plot(corrMx.linear.Z[lower.tri(corrMx.linear.Z)], corrMx.nonLinear.Z[lower.tri(corrMx.nonLinear.Z)], xlim=c(0,30), ylim=c(0,40), main = "Z-score for all gene-gene correlations", xlab = "Z-score with Pearson", ylab = "Z-score with MI")
 # Only in linear -----------------------------------------------------------
 CorrM1 = matrix(nrow = length(genes.filtered), ncol = length(genes.filtered))
 rownames(CorrM1) = genes.filtered

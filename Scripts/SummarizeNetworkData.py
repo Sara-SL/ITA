@@ -47,13 +47,13 @@ for line in lines:
 file.close()
 
 ## Read files containing genes on PBMC with cutoff 1
-file = open('/Users/saralundqvist/github/ITA/SupplementaryTables/Supl.Table2_TopCorrPBMC.csv', 'r')
+file = open('/Users/saralundqvist/github/ITA/Tables/TopCorrPBMC_cutoff1.csv', 'r')
 csv_reader = csv.reader(file)
 PBMC = list(csv_reader)
 file.close()
 
 ## Read files containing genes on Blood with cutoff 1
-file = open('/Users/saralundqvist/github/ITA/SupplementaryTables/Supl.Table3_TopCorrBlood.csv', 'r')
+file = open('/Users/saralundqvist/github/ITA/Tables/TopCorrBlood_cutoff1.csv', 'r')
 csv_reader = csv.reader(file)
 Blood = list(csv_reader)
 file.close()
@@ -243,26 +243,26 @@ for i in range(1, len(topCorrBlood['Gene2'])):
 
 #Merge DataFrames
 sumTable = topCorrPBMC.append(topCorrBlood, ignore_index = True)
-sumTable.to_csv(r'/Users/saralundqvist/github/ITA/SupplementaryTables/Supl.Table8_summarizingTable_blood_vs_PBMC.csv', sep='\t', index = False)
+sumTable.to_csv(r'/Users/saralundqvist/github/ITA/SupplementaryTables/Supl.Table1_summarizingTable_blood_vs_PBMC.csv', sep='\t', index = False)
 
 
 
 #########    .txt files to .csv files   #########
 genesInPBMC = pandas.read_csv('/Users/saralundqvist/github/ITA/gitignore/genes_in_PBMC.txt', sep=" ", header=None)
 genesInPBMC.columns = ['ID', 'Gene Name', 'Number of correlations']
-genesInPBMC.to_csv(r'/Users/saralundqvist/github/ITA/SupplementaryTables/Supl.Table9_genes_in_PBMC.csv', sep='\t', index = False)
+genesInPBMC.to_csv(r'/Users/saralundqvist/github/ITA/Tables/genes_in_PBMC.csv', sep='\t', index = False)
 
 genesInBlood = pandas.read_csv('/Users/saralundqvist/github/ITA/gitignore/genes_in_Blood.txt', sep=" ", header=None)
 genesInBlood.columns = ['ID', 'Gene Name', 'Number of correlations']
-genesInBlood.to_csv(r'/Users/saralundqvist/github/ITA/SupplementaryTables/Supl.Table10_genes_in_Blood.csv', sep='\t', index = False)
+genesInBlood.to_csv(r'/Users/saralundqvist/github/ITA/Tables/genes_in_Blood.csv', sep='\t', index = False)
 
 commonGenes.columns = ['ID', 'Gene Name']
-commonGenes.to_csv(r'/Users/saralundqvist/github/ITA/SupplementaryTables/Supl.Table11_common_genes.csv', sep='\t', index = False)
+commonGenes.to_csv(r'/Users/saralundqvist/github/ITA/Tables/common_genes.csv', sep='\t', index = False)
 
 specificInPBMC = pandas.read_csv('/Users/saralundqvist/github/ITA/gitignore/specific_PBMC.txt', sep=" ", header=None)
 specificInPBMC.columns = ['ID', 'Gene Name']
-specificInPBMC.to_csv(r'/Users/saralundqvist/github/ITA/SupplementaryTables/Supl.Table12_specific_PBMC.csv', sep='\t', index = False)
+specificInPBMC.to_csv(r'/Users/saralundqvist/github/ITA/Tables/specific_PBMC.csv', sep='\t', index = False)
 
 specificInBlood = pandas.read_csv('/Users/saralundqvist/github/ITA/gitignore/specific_Blood.txt', sep=" ", header=None)
 specificInBlood.columns = ['ID', 'Gene Name']
-specificInBlood.to_csv(r'/Users/saralundqvist/github/ITA/SupplementaryTables/Supl.Table13_specific_Blood.csv', sep='\t', index = False)
+specificInBlood.to_csv(r'/Users/saralundqvist/github/ITA/Tables/specific_Blood.csv', sep='\t', index = False)

@@ -8,8 +8,7 @@ library(igraph)
 myPath = "~/github/ITA/GeneData/"
 myDataPath = "~/github/ITA/ExpressionData/"
 myBigDataPath = "~/github/ITA/BigData/"
-myTablePath = "~/github/ITA/SupplementaryTables/"
-myFigurePath = "~/github/ITA/SupplementaryFigures/"
+myTablePath = "~/github/ITA/Tables/"
 
 ## Load data ---------------------------------------------------------------
 setwd(myPath)
@@ -313,6 +312,7 @@ for(i in 1:5) {
 top_genes1_table = top_genes1_table[!duplicated(top_genes1_table),]
 
 # Save correlations for hub genes in .csv file 
+setwd(myTablePath)
 write.csv(top_genes1_table, file="CorrelationsTop5HubGenes_linear.csv", sep = ',', col.names = TRUE)
 
 
@@ -332,6 +332,7 @@ for(i in 1:5) {
 top_genes2_table = top_genes2_table[!duplicated(top_genes2_table),]
 
 # Save correlations for hub genes in .csv file 
+setwd(myTablePath)
 write.csv(top_genes2_table, file="CorrelationsTop5HubGenes_nonLinear.csv", sep = ',', col.names = TRUE)
 
 

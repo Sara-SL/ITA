@@ -8,8 +8,7 @@ library(igraph)
 myPath = "~/github/ITA/GeneData/"
 myDataPath = "~/github/ITA/ExpressionData/"
 myBigDataPath = "~/github/ITA/BigData/"
-myTablePath = "~/github/ITA/SupplementaryTables/"
-myFigurePath = "~/github/ITA/SupplementaryFigures/"
+myTablePath = "~/github/ITA/Tables/"
 
 ## Load data ---------------------------------------------------------------
 setwd(myPath)
@@ -238,8 +237,9 @@ for(j in 1:length(TopCorrM1[,3])){
 TopCorrM1_filtered = TopCorrM1[-remove,]
 
 # Save table to file
-write.csv(TopCorrM1_filtered, file="Supl.Table2_TopCorrPBMC.csv", sep = ',', col.names = TRUE)
-#write.csv(TopCorrM1_filtered, file="Supl.Table4_TopCorrPBMC_cutoff0.6.csv", sep = ',', col.names = TRUE)
+setwd(myTablePath)
+write.csv(TopCorrM1_filtered, file="TopCorrPBMC_cutoff1.csv", sep = ',', col.names = TRUE)
+#write.csv(TopCorrM1_filtered, file="TopCorrPBMC_cutoff0.6.csv", sep = ',', col.names = TRUE)
 
 
 cutoff = 1 # Also tried with 0,6
@@ -254,8 +254,9 @@ for(j in 1:length(TopCorrM2[,3])){
 TopCorrM2_filtered = TopCorrM2[-remove,]
 
 # Save table to file
-write.csv(TopCorrM2_filtered, file="Supl.Table3_TopCorrBlood.csv", sep = ',', col.names = TRUE)
-#write.csv(TopCorrM2_filtered, file="Supl.Table5_TopCorrBlood_cutoff0.6.csv", sep = ',', col.names = TRUE)
+setwd(myTablePath)
+write.csv(TopCorrM2_filtered, file="TopCorrBlood_cutoff1.csv", sep = ',', col.names = TRUE)
+#write.csv(TopCorrM2_filtered, file="TopCorrBlood_cutoff0.6.csv", sep = ',', col.names = TRUE)
 
 
 ## -------------------- Create networks -------------------------------------
@@ -304,7 +305,8 @@ for(i in 1:5) {
 top_genes1_table = top_genes1_table[!duplicated(top_genes1_table),]
 
 # Save correlations for hub genes in .csv file 
-write.csv(top_genes1_table, file="Supl.Table6_CorrelationsTop5HubGenes_PBMC.csv", sep = ',', col.names = TRUE)
+setwd(myTablePath)
+write.csv(top_genes1_table, file="CorrelationsTop5HubGenes_PBMC.csv", sep = ',', col.names = TRUE)
 
 top_genes2_table = matrix(nrow = 0, ncol = 2)
 colnames(top_genes2_table) = c("Top gene", "Correlation gene")
@@ -321,8 +323,9 @@ for(i in 1:5) {
 }
 top_genes2_table = top_genes2_table[!duplicated(top_genes2_table),]
 
-# Save correlations for hub genes in .csv file 
-write.csv(top_genes2_table, file="Supl.Table7_CorrelationsTop5HubGenes_Blood.csv", sep = ',', col.names = TRUE)
+# Save correlations for hub genes in .csv file
+setwd(myTablePath)
+write.csv(top_genes2_table, file="CorrelationsTop5HubGenes_Blood.csv", sep = ',', col.names = TRUE)
 
 
 # ----------------- Extra ----------------

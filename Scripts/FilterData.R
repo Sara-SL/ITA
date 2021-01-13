@@ -3,8 +3,7 @@
 # Set path ----------------------------------------------------------------
 myPath = "~/github/ITA/GeneData"
 myDataPath = "~/github/ITA/ExpressionData/"
-myTablePath = "~/github/ITA/SupplementaryTables/"
-myFigurePath = "~/github/ITA/SupplementaryFigures/"
+myTablePath = "~/github/ITA/Tables/"
 
 # Load data ---------------------------------------------------------------
 setwd(myPath)
@@ -33,8 +32,8 @@ for (i in 1:length(files)) {
 }
 
 # Save variance matix to file ---------------------------------------------
-setwd(myFigurePath)
-write.csv(VarMatrix, file ="Supl.Table1_VaranceMatrix.csv", row.names = TRUE)
+setwd(myTablePath)
+write.csv(VarMatrix, file ="VaranceMatrix.csv", row.names = TRUE)
 
 
 # Remove genes that are missing in too many datasets ----------------------

@@ -243,7 +243,7 @@ for i in range(1, len(topCorrBlood['Gene2'])):
 
 #Merge DataFrames
 sumTable = topCorrPBMC.append(topCorrBlood, ignore_index = True)
-sumTable.to_csv(r'/Users/saralundqvist/github/ITA/SupplementaryTables/Supl.Table1_summarizingTable_blood_vs_PBMC.csv', sep='\t', index = False)
+sumTable.to_csv(r'/Users/saralundqvist/github/ITA/SupplementaryTables/Supl.Table2_summarizingTable_blood_vs_PBMC.csv', sep='\t', index = False)
 
 
 
